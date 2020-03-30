@@ -31,31 +31,40 @@ def parse_cdr(cdr_file, tel_number):
     return in_calls, out_calls, sms_list
     
 
-def tariffing(tel_number, in_min_cost, in_min_free, out_min_cost, out_min_free, sms_cost, sms_free):
+def tariffing(cdr_file, tel_number, \
+              in_min_cost, in_min_free, out_min_cost, \
+              out_min_free, sms_cost, sms_free):
 
+    # total cost
     cost_in  = 0
     cost_out = 0
     cost_sms = 0
     
+    # total ones
+    res_count_in = 0
+    res_count_out = 0
+    res_count_sms = 0
+
     # returns lists of [target, count]
-    in_calls, out_calls, sms_list = parse_cdr(CDR_FILE, tel_number)
+    in_calls, out_calls, sms_list = parse_cdr(cdr_file, tel_number)
 
     # iterate on list to sum all of count
     for in_record in in_calls:
-        cost_in += in_record[1]
+        res_count_in += in_record[1]
         
     # subtitute free ones and then power with cost
-    cost_in  = 0 if ((cost_in - in_min_free) <= 0) else (cost_in - in_min_free) * in_min_cost 
+    cost_in  = 0 if ((res_count_in - in_min_free) <= 0) else (res_count_in - in_min_free) * in_min_cost 
     
     for out_record in out_calls:
-        cost_out += out_record[1]
-    cost_out = 0 if ((cost_out - out_min_free) <= 0) else (cost_out - out_min_free) * out_min_cost
+        res_count_out += out_record[1]
+    cost_out = 0 if ((res_count_out - out_min_free) <= 0) else (res_count_out - out_min_free) * out_min_cost
 
     for sms_record in sms_list:
-        cost_sms += sms_record[1]
-    cost_sms = 0 if ((cost_sms - sms_free) <= 0) else (cost_sms - sms_free) * sms_cost
+        res_count_sms += sms_record[1]
+    cost_sms = 0 if ((res_count_sms - sms_free) <= 0) else (res_count_sms - sms_free) * sms_cost
 
     return in_calls, out_calls, sms_list, \
+           res_count_in, res_count_out, res_count_sms, \
            cost_in, cost_out, cost_sms
 
 
@@ -93,17 +102,24 @@ if __name__ == "__main__":
     
     print("Tariffing...")
     in_calls, out_calls, sms_list, \
-        cost_in, cost_out, cost_sms \
-            = tariffing(tel_number, in_min_cost, in_min_free, out_min_cost, out_min_free, sms_cost, sms_free)
-    
-    cost_tel = cost_in + cost_out
+        res_count_in, res_count_out, res_count_sms, \
+            cost_in, cost_out, cost_sms \
+                = tariffing(CDR_FILE,
+                            tel_number,
+                            in_min_cost, in_min_free,
+                            out_min_cost, out_min_free,
+                            sms_cost, sms_free)
+        
+    cost_call = cost_in + cost_out
     
     print("------------------------------------------")
     print("Incoming calls:")
     for in_record in in_calls:
         print("From {} ({} min)\t  : {} rub.".format(in_record[0], in_record[1], in_record[1] * in_min_cost))
     if in_min_free:
-        print("Free minutes (incoming)   : {} rub.".format(in_min_free * in_min_cost * -1))
+        # not all minutes may be used
+        min_to_calc = min(in_min_free, res_count_in)
+        print("Free minutes (incoming)   : {} rub.".format(min_to_calc * in_min_cost * -1))
     print("Total incoming calls cost : {} rub.".format(cost_in))
 
     print("------------------------------------------")
@@ -111,7 +127,8 @@ if __name__ == "__main__":
     for out_record in out_calls:
         print("To {} ({} min)\t  : {} rub.".format(out_record[0], out_record[1], out_record[1] * out_min_cost))
     if out_min_free:
-        print("Free minutes (outgoing)   : {} rub.".format(out_min_free * out_min_cost * -1))
+        min_to_calc = min(out_min_free, res_count_out)
+        print("Free minutes (outgoing)   : {} rub.".format(min_to_calc * out_min_cost * -1))
     print("Total outgoing calls cost : {} rub.".format(cost_out))
 
     print("------------------------------------------")
@@ -119,9 +136,10 @@ if __name__ == "__main__":
     for sms_record in sms_list:
         print("To {} ({} SMS)\t  : {} rub.".format(sms_record[0], sms_record[1], sms_record[1] * sms_cost))
     if sms_free:
+        sms_to_calc = min(sms_free, res_count_sms)
         print("Free SMS                  : {} rub.".format(sms_free * sms_cost * -1))
     print("Total SMS cost            : {} rub.".format(cost_sms))
 
     print("------------------------------------------")
-    print("TOTAL COST : {} rub.".format(cost_tel + cost_sms))
+    print("TOTAL COST : {} rub.".format(cost_call + cost_sms))
     print("")
