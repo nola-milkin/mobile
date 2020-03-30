@@ -5,6 +5,7 @@ import os
 import re
 import math
 import subprocess
+from shlex import split
 from datetime import datetime, timedelta
 
 import matplotlib
@@ -106,8 +107,9 @@ if __name__ == "__main__":
             print("File {} doesn't exist".format(NETFLOW_FILE))
             sys.exit(-1)
 
-        p1 = subprocess.Popen(["nfdump -r " + NETFLOW_FILE + " > " + NETFLOW_DUMP_FILE]) 
-        p1.wait()
+        with open(NETFLOW_DUMP_FILE, 'w') as f:
+            p1 = subprocess.Popen(split("nfdump -r " + NETFLOW_FILE), stdout=f)
+            p1.wait()
 
         if not os.path.exists(NETFLOW_DUMP_FILE):
             print("File {} doesn't exist".format(NETFLOW_DUMP_FILE))
