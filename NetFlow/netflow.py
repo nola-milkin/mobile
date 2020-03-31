@@ -71,7 +71,7 @@ def graph(date_data_list):
     ax.set_xlabel('Time (hours and minutes)')
 
     ax.set_title('Graph of traffic volume per time')
-    ax.set_xlim(min_date - timedelta(minutes=5), max_date + timedelta(minutes=5))
+    ax.set_xlim(min_date - timedelta(minutes=4), max_date + timedelta(minutes=6))
     ax.set_ylim(0, max_traffic + 0.05)
 
     formatter = mdates.DateFormatter('%H:%M')
