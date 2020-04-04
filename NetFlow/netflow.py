@@ -15,7 +15,7 @@ import matplotlib.dates as mdates
 NETFLOW_FILE      = 'nfcapd.202002251200'
 NETFLOW_DUMP_FILE = 'dump.txt' 
 
-RE_DATA = re.compile(r'(?P<date>\d+-\d+-\d+) (?P<time>\d+:\d+:\d+\.\d+)[ ]+(\w+[ ]+\w+){0,1}(\d+\.\d+){0,1}[ ](\w+)[ ]+(((?P<src_ip>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)|(?P<src_ip_v6>.*?\.\d+))[ ]+->[ ]+((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)|(.*?\.\d+))[ ]+){1}(((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)|(.*?\.\d+))[ ]+->[ ]+((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)|(.*?\.\d+))[ ]+){0,1}(\d+){0,1}[ ]+(?P<byte>\d+)[ ]+(\d+)')
+RE_DATA = re.compile(r'(?P<date>\d+-\d+-\d+) (?P<time>\d+:\d+:\d+\.\d+)[ ]+(\w+[ ]+\w+){0,1}(\d+\.\d+){0,1}[ ](\w+)[ ]+(((?P<src_ip>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)|(?P<src_ip_v6>.*?\.\d+))[ ]+->[ ]+((?P<dest_ip>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)|(?P<dest_ip_v6>.*?\.\d+))[ ]+){1}(((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)|(.*?\.\d+))[ ]+->[ ]+((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)|(.*?\.\d+))[ ]+){0,1}(\d+){0,1}[ ]+(?P<byte>\d+)[ ]+(\d+)')
 
 def parse_dump(dump_file, is_graph=True, is_net=True):
     date_data_list = list()
@@ -32,10 +32,10 @@ def parse_dump(dump_file, is_graph=True, is_net=True):
                 date_data_list.append(date_list)
 
             if is_net and match.group('byte') != None:
-                if match.group('src_ip') != None:
-                    ip_data_list.append(match.group('src_ip', 'byte'))
-                elif match.group('src_ip_v6') != None:
-                    ip_data_list.append(match.group('src_ip_v6', 'byte'))
+                if (match.group('src_ip') != None) or (match.group('dest_ip') != None):
+                    ip_data_list.append(match.group('src_ip', 'dest_ip', 'byte'))
+                elif (match.group('src_ip_v6') != None) or (match.group('dest_ip_v6') != None):
+                    ip_data_list.append(match.group('src_ip_v6', 'dest_ip_v6', 'byte'))
                 else:
                     pass
 
@@ -88,8 +88,8 @@ def tariffing(ip_data_list, ip_addr, Mb_cost):
     traffic_volume = 0
     
     for record in ip_data_list:
-        if record[0] == ip_addr:
-            traffic_volume += int(record[1])
+        if (record[0] == ip_addr) or ((record[1] == ip_addr)):
+            traffic_volume += int(record[2])
 
     # to Megabytes
     traffic_mb = math.ceil(traffic_volume / 1000000.0)

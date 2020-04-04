@@ -1,8 +1,7 @@
 # mobile-billing
+<img src="./NetFlow/images/plot.png" alt="" width="300"/>
 
 ## CDR (Call Detail Record)
-<img src="./CDR/images/screenshot.png" alt="" width="250"/>
-
 ```
 .
 └── CDR
@@ -13,9 +12,6 @@
 ```
 
 ## NetFlow
-<img src="./NetFlow/images/screenshot.png" alt="" width="300"/>
-<img src="./NetFlow/images/plot.png" alt="" width="300"/>
-
 ```
 .
 └── NetFlow
@@ -25,14 +21,12 @@
 ```
 
 ## Payment
-<img src="./Payment/images/screenshot.png" alt="" width="300"/>
-<img src="./Payment/images/document.png" alt="" width="300"/>
-
 ```
 .
-├── fonts\
-├── images\
-├── payment.py
-├── payment.pdf
-└── reports\
+└── Payment
+    ├── fonts\
+    ├── images\
+    ├── payment.py
+    ├── payment.pdf
+    └── reports\
 ```
